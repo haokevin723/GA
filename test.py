@@ -45,19 +45,28 @@ def main():
     model.eval()
     all_preds = []
     all_targets = []
+    all_names = []
     with torch.no_grad():
-        for images, targets in test_loader:
+        for batch_idx, (images, targets) in enumerate(test_loader):
             images = images.to(device)
             targets = targets.float().to(device)
             preds = model(images)
             all_preds.append(preds.cpu())
             all_targets.append(targets.cpu())
+            # 获取图片名
+            batch_start = batch_idx * cfg['batch_size']
+            batch_end = batch_start + images.size(0)
+            all_names.extend(test_dataset.file_list[batch_start:batch_end])
 
     all_preds = torch.cat(all_preds).squeeze().numpy()
     all_targets = torch.cat(all_targets).squeeze().numpy()
 
     print(f"Test MAE: {mae(all_preds, all_targets):.3f}")
     print(f"Test RMSE: {rmse(all_preds, all_targets):.3f}")
+
+    print("\n[Sample Results]")
+    for name, target, pred in zip(all_names, all_targets, all_preds):
+        print(f"{name}\tTrue: {target:.3f}\tPred: {pred:.3f}")
 
 if __name__ == '__main__':
     main()
