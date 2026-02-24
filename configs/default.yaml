@@ -1,0 +1,16 @@
+# 默认配置
+seed: 42
+model: densenet
+backbone: densenet201
+pretrained: true
+loss: mse
+optimizer: adam
+lr: 0.0001
+batch_size: 32
+epochs: 100
+data_dir: E:/博士/两个项目整理/北京妇幼胎儿肺脏/dataset_for_regression/data
+label_csv: data/labels.csv
+train_split: data/splits/train.txt
+val_split: data/splits/val.txt
+test_split: data/splits/test.txt
+num_workers: 4
