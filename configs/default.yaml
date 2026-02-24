@@ -8,9 +8,9 @@ optimizer: adam
 lr: 0.0001
 batch_size: 32
 epochs: 100
-data_dir: E:/博士/两个项目整理/北京妇幼胎儿肺脏/dataset_for_regression/data
-label_csv: data/labels.csv
-train_split: data/splits/train.txt
-val_split: data/splits/val.txt
-test_split: data/splits/test.txt
+data_dir: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/data
+label_csv: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/labels.csv
+train_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/train.txt
+val_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/val.txt
+test_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/test.txt
 num_workers: 4
