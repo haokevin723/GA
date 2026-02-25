@@ -7,7 +7,7 @@ loss: mse
 optimizer: adam
 lr: 0.0001
 batch_size: 32
-epochs: 100
+epochs: 300
 data_dir: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/data
 label_csv: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/labels.csv
 train_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_regression/train.txt

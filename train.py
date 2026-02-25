@@ -2,6 +2,7 @@ import os
 import yaml
 import torch
 import argparse
+import pandas as pd
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from datasets.regression_dataset import RegressionDataset
@@ -52,9 +53,13 @@ def main():
     criterion = get_loss(cfg['loss'])
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg['lr'])
 
+    ensure_dir('logs')
+    train_losses = []
+    val_losses_curve = []
     best_mae = float('inf')
     for epoch in range(cfg['epochs']):
         model.train()
+        epoch_train_losses = []
         for images, targets in train_loader:
             images = images.to(device)
             targets = targets.float().to(device)
@@ -63,6 +68,9 @@ def main():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            epoch_train_losses.append(loss.item())
+        mean_train_loss = sum(epoch_train_losses) / len(epoch_train_losses)
+        train_losses.append(mean_train_loss)
         # 验证
         model.eval()
         val_losses = []
@@ -75,13 +83,17 @@ def main():
                 loss = criterion(preds, targets)
                 val_losses.append(loss.item())
                 val_maes.append(torch.mean(torch.abs(preds - targets)).item())
+        mean_val_loss = sum(val_losses) / len(val_losses)
         mean_val_mae = sum(val_maes) / len(val_maes)
-        print(f"Epoch {epoch+1}/{cfg['epochs']} | Val MAE: {mean_val_mae:.3f}")
+        val_losses_curve.append(mean_val_loss)
+        print(f"Epoch {epoch+1}/{cfg['epochs']} | Train Loss: {mean_train_loss:.4f} | Val Loss: {mean_val_loss:.4f} | Val MAE: {mean_val_mae:.3f}")
         # 保存最优模型
         if mean_val_mae < best_mae:
             best_mae = mean_val_mae
             torch.save(model.state_dict(), os.path.join('checkpoints', 'best_model.pth'))
             print("[INFO] Saved best model.")
+        # 每个epoch保存损失曲线
+        pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses_curve}).to_csv('logs/loss_curve.csv', index=False)
 
 if __name__ == '__main__':
     main()

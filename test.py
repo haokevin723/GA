@@ -13,6 +13,27 @@ def load_config(path):
     with open(path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
+def day_to_week(day):
+    return int(round(day / 7))
+
+def week_to_class(week):
+    if 21 <= week <= 24:
+        return '21-24周'
+    elif 25 <= week <= 28:
+        return '25-28周'
+    elif 29 <= week <= 30:
+        return '29-30周'
+    elif 31 <= week <= 32:
+        return '31-32周'
+    elif 33 <= week <= 34:
+        return '33-34周'
+    elif 35 <= week <= 36:
+        return '35-36周'
+    elif 37 <= week <= 40:
+        return '37-40周'
+    else:
+        return '其它'
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', type=str, default=None, help='GPU id to use, e.g. 0 or 1')
@@ -66,7 +87,11 @@ def main():
 
     print("\n[Sample Results]")
     for name, target, pred in zip(all_names, all_targets, all_preds):
-        print(f"{name}\tTrue: {target:.3f}\tPred: {pred:.3f}")
+        true_week = day_to_week(target)
+        pred_week = day_to_week(pred)
+        true_class = week_to_class(true_week)
+        pred_class = week_to_class(pred_week)
+        print(f"{name}\tTrue: {target:.1f} ({true_week}周, {true_class})\tPred: {pred:.1f} ({pred_week}周, {pred_class})")
 
 if __name__ == '__main__':
     main()
