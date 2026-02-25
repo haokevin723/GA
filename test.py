@@ -103,6 +103,7 @@ def main():
     for label in class_labels:
         print(f"{label}: {pred_classes.count(label)}")
 
+
     # 混淆矩阵
     print("\n[混淆矩阵]")
     matrix = defaultdict(lambda: Counter())
@@ -114,6 +115,18 @@ def main():
     for t in class_labels:
         row = [str(matrix[t][p]) for p in class_labels]
         print(f"{t}\t" + '\t'.join(row))
+
+    # 计算每个类别的准确率、召回率和F1值
+    print("\n[分类指标]")
+    for label in class_labels:
+        TP = matrix[label][label]
+        FP = sum(matrix[other][label] for other in class_labels if other != label)
+        FN = sum(matrix[label][other] for other in class_labels if other != label)
+        # 支持零分母
+        precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+        recall = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+        print(f"{label}: Precision={precision:.3f} Recall={recall:.3f} F1={f1:.3f}")
 
     print("\n[Sample Results]")
     for name, target, pred in zip(all_names, all_targets, all_preds):
