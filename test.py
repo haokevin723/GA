@@ -2,6 +2,8 @@ import os
 import yaml
 import torch
 import argparse
+import numpy as np
+from collections import Counter, defaultdict
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from datasets.regression_dataset import RegressionDataset
@@ -82,8 +84,36 @@ def main():
     all_preds = torch.cat(all_preds).squeeze().numpy()
     all_targets = torch.cat(all_targets).squeeze().numpy()
 
+
     print(f"Test MAE: {mae(all_preds, all_targets):.3f}")
     print(f"Test RMSE: {rmse(all_preds, all_targets):.3f}")
+
+    # 统计类别分布和混淆矩阵
+    class_labels = ['21-24周','25-28周','29-30周','31-32周','33-34周','35-36周','37-40周','其它']
+    true_classes = [week_to_class(day_to_week(t)) for t in all_targets]
+    pred_classes = [week_to_class(day_to_week(p)) for p in all_preds]
+
+    # 真实类别分布
+    print("\n[真实类别分布]")
+    for label in class_labels:
+        print(f"{label}: {true_classes.count(label)}")
+
+    # 预测类别分布
+    print("\n[预测类别分布]")
+    for label in class_labels:
+        print(f"{label}: {pred_classes.count(label)}")
+
+    # 混淆矩阵
+    print("\n[混淆矩阵]")
+    matrix = defaultdict(lambda: Counter())
+    for t, p in zip(true_classes, pred_classes):
+        matrix[t][p] += 1
+    print("真实类别 -> 预测类别:")
+    header = '\t'.join(class_labels)
+    print(f"类别\t{header}")
+    for t in class_labels:
+        row = [str(matrix[t][p]) for p in class_labels]
+        print(f"{t}\t" + '\t'.join(row))
 
     print("\n[Sample Results]")
     for name, target, pred in zip(all_names, all_targets, all_preds):
