@@ -16,7 +16,7 @@ def load_config(path):
         return yaml.safe_load(f)
 
 def day_to_week(day):
-    return int(round(day / 7))
+    return int(day // 7)
 
 def week_to_class(week):
     if 21 <= week <= 24:
