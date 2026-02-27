@@ -128,13 +128,39 @@ def main():
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
         print(f"{label}: Precision={precision:.3f} Recall={recall:.3f} F1={f1:.3f}")
 
+    # 辅助函数：几周几天
+    def week_and_day(day):
+        week = int(day // 7)
+        days = int(day % 7)
+        return week, days
+
+    # 区间映射
+    def pred_to_interval(pred):
+        intervals = {
+            '21-24周': (147, 168),
+            '25-28周': (175, 196),
+            '29-30周': (203, 216),
+            '31-32周': (217, 230),
+            '33-34周': (231, 244),
+            '35-36周': (245, 258),
+            '37-40周': (259, 280)
+        }
+        for label, (start, end) in intervals.items():
+            if start <= pred <= end:
+                return label, start, end
+        return '其它', None, None
+
     print("\n[Sample Results]")
     for name, target, pred in zip(all_names, all_targets, all_preds):
-        true_week = day_to_week(target)
-        pred_week = day_to_week(pred)
-        true_class = week_to_class(true_week)
-        pred_class = week_to_class(pred_week)
-        print(f"{name}\tTrue: {target:.1f} ({true_week}周, {true_class})\tPred: {pred:.1f} ({pred_week}周, {pred_class})")
+        true_week, true_day = week_and_day(target)
+        pred_class, start, end = pred_to_interval(pred)
+        if start is not None:
+            pred_week = int(pred // 7)
+            pred_day = int(pred % 7)
+        else:
+            pred_week = int(pred // 7)
+            pred_day = int(pred % 7)
+        print(f"{name}\tTrue: {target:.1f} ({true_week}周{true_day}天, {week_to_class(true_week)})\tPred: {pred:.1f} ({pred_week}周{pred_day}天, {pred_class})")
 
 if __name__ == '__main__':
     main()
