@@ -135,19 +135,25 @@ def main():
         return week, days
 
     # 区间映射
+
     def pred_to_interval(pred):
-        intervals = {
-            '21-24周': (147, 168),
-            '25-28周': (175, 196),
-            '29-30周': (203, 216),
-            '31-32周': (217, 230),
-            '33-34周': (231, 244),
-            '35-36周': (245, 258),
-            '37-40周': (259, 280)
-        }
-        for label, (start, end) in intervals.items():
-            if start <= pred <= end:
-                return label, start, end
+        intervals = [
+            ('21-24周', 147, 168),
+            ('25-28周', 175, 196),
+            ('29-30周', 203, 216),
+            ('31-32周', 217, 230),
+            ('33-34周', 231, 244),
+            ('35-36周', 245, 258),
+            ('37-40周', 259, 280)
+        ]
+        for i, (label, start, end) in enumerate(intervals):
+            # 左闭右开，最后一个区间右闭
+            if i < len(intervals) - 1:
+                if start <= pred < intervals[i+1][1]:
+                    return label, start, end
+            else:
+                if start <= pred <= end:
+                    return label, start, end
         return '其它', None, None
 
     print("\n[Sample Results]")
