@@ -98,6 +98,7 @@ def main():
 
         # 调度器步进：根据验证损失调整学习率
         scheduler.step(mean_val_loss)
+        print(f"Current learning rate: {optimizer.param_groups[0]['lr']:.6f}")
 
         # 每个epoch保存损失曲线
         pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses_curve}).to_csv('logs/loss_curve.csv', index=False)
