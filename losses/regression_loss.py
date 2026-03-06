@@ -5,5 +5,7 @@ def get_loss(name='mse'):
         return nn.MSELoss()
     elif name == 'mae':
         return nn.L1Loss()
+    elif name == 'smooth_l1':
+        return nn.SmoothL1Loss()
     else:
         raise ValueError(f'Unknown loss: {name}')

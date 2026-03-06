@@ -3,11 +3,11 @@ seed: 42
 model: densenet
 backbone: densenet201
 pretrained: true
-loss: mse
+loss: smooth_l1
 optimizer: adam
 lr: 0.0001
 batch_size: 32
-epochs: 300
+epochs: 500
 data_dir: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/data
 label_csv: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/label.csv
 train_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/train.txt
