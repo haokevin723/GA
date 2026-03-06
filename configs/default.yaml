@@ -3,7 +3,7 @@ seed: 42
 model: densenet
 backbone: densenet201
 pretrained: true
-loss: smooth_l1
+loss: mse
 optimizer: adam
 lr: 0.0001
 batch_size: 32

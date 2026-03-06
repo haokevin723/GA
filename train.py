@@ -51,7 +51,10 @@ def main():
     model = model.to(device) 
 
     criterion = get_loss(cfg['loss'])
+
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg['lr'])
+    # 学习率调度器：验证损失不下降时自动衰减学习率
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
 
     ensure_dir('logs')
     train_losses = []
@@ -92,6 +95,10 @@ def main():
             best_mae = mean_val_mae
             torch.save(model.state_dict(), os.path.join('checkpoints', 'best_model.pth'))
             print("[INFO] Saved best model.")
+
+        # 调度器步进：根据验证损失调整学习率
+        scheduler.step(mean_val_loss)
+
         # 每个epoch保存损失曲线
         pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses_curve}).to_csv('logs/loss_curve.csv', index=False)
 
