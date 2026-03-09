@@ -6,6 +6,7 @@ import numpy as np
 import datetime
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties, findSystemFonts
 from collections import Counter, defaultdict
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -30,13 +31,13 @@ def week_and_day(day):
 
 def pred_to_interval(pred):
     intervals = [
-        ('21-24week', 147, 168),
-        ('25-28week', 175, 196),
-        ('29-30week', 203, 216),
-        ('31-32week', 217, 230),
-        ('33-34week', 231, 244),
-        ('35-36week', 245, 258),
-        ('37-40week', 259, 280)
+        ('21-24w', 147, 168),
+        ('25-28w', 175, 196),
+        ('29-30w', 203, 216),
+        ('31-32w', 217, 230),
+        ('33-34w', 231, 244),
+        ('35-36w', 245, 258),
+        ('37-40w', 259, 280)
     ]
     for i, (label, start, end) in enumerate(intervals):
         # 左闭右开，最后一个区间右闭
@@ -46,7 +47,7 @@ def pred_to_interval(pred):
         else:
             if start <= pred <= end:
                 return label, start, end
-    return 'other', None, None
+    return 'Other', None, None
 
 def print_class_distribution(class_labels, classes, title):
     print(f"\n[{title}]")
@@ -54,20 +55,20 @@ def print_class_distribution(class_labels, classes, title):
         print(f"{label}: {classes.count(label)}")
 
 def print_confusion_matrix(class_labels, true_classes, pred_classes):
-    print("\n[混淆矩阵]")
+    print("\n[Confusion Matrix]")
     matrix = defaultdict(lambda: Counter())
     for t, p in zip(true_classes, pred_classes):
         matrix[t][p] += 1
-    print("真实类别 -> 预测类别:")
+    print("True Class -> Predicted Class:")
     header = '\t'.join(class_labels)
-    print(f"类别\t{header}")
+    print(f"Class\t{header}")
     for t in class_labels:
         row = [str(matrix[t][p]) for p in class_labels]
         print(f"{t}\t" + '\t'.join(row))
     return matrix
 
 def print_classification_metrics(class_labels, matrix):
-    print("\n[分类指标]")
+    print("\n[Classification Metrics]")
     for label in class_labels:
         TP = matrix[label][label]
         FP = sum(matrix[other][label] for other in class_labels if other != label)
@@ -88,20 +89,33 @@ def print_sample_results(all_names, all_targets, all_preds, week_to_class, week_
         else:
             pred_week = int(pred // 7)
             pred_day = int(pred % 7)
-        print(f"{name}\tTrue: {target:.1f} ({true_week}周{true_day}天, {week_to_class(true_week)})\tPred: {pred:.1f} ({pred_week}周{pred_day}天, {pred_class})")
+        print(f"{name}\tTrue: {target:.1f} ({true_week}w{true_day}d, {week_to_class(true_week)})\tPred: {pred:.1f} ({pred_week}w{pred_day}d, {pred_class})")
 
 def save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result_dir):
     matplotlib.rcParams['font.sans-serif'] = ['SimHei']
     matplotlib.rcParams['axes.unicode_minus'] = False
     plt.figure(figsize=(7,7))
+    simhei_path = None
+    for font in findSystemFonts(fontpaths=None, fontext='ttf'):
+        if 'simhei' in font.lower():
+            simhei_path = font
+            break
+    if simhei_path:
+        my_font = FontProperties(fname=simhei_path)
+        matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+        print(f"[INFO] 使用 SimHei 字体: {simhei_path}")
+    else:
+        my_font = None
+        print("[WARNING] 未找到 SimHei 字体，中文可能无法正常显示。请在系统中安装 simhei.ttf。")
     color_map = {
-        '21-24week': 'tab:blue',
-        '25-28week': 'tab:orange',
-        '29-30week': 'tab:green',
-        '31-32week': 'tab:red',
-        '33-34week': 'tab:purple',
-        '35-36week': 'tab:brown',
-        '37-40week': 'tab:pink',
+        '21-24w': 'tab:blue',
+        '25-28w': 'tab:orange',
+        '29-30w': 'tab:green',
+        '31-32w': 'tab:red',
+        '33-34w': 'tab:purple',
+        '35-36w': 'tab:brown',
+        '37-40w': 'tab:pink',
+        'Other': 'gray'
     }
     for label in class_labels[:-1]:
         idxs = [i for i, c in enumerate(true_classes) if c == label]
@@ -110,14 +124,20 @@ def save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result
     min_val = min(all_targets.min(), all_preds.min())
     max_val = max(all_targets.max(), all_preds.max())
     plt.plot([min_val, max_val], [min_val, max_val], 'k--', label='y=x')
-    plt.xlabel('True Value')
-    plt.ylabel('Predicted Value')
-    plt.title('Regression Scatter Plot by Gestational Age')
-    plt.legend()
+    if my_font:
+        plt.xlabel('True Value', fontproperties=my_font)
+        plt.ylabel('Predicted Value', fontproperties=my_font)
+        plt.title('Regression Scatter Plot by Gestational Age', fontproperties=my_font)
+        plt.legend(prop=my_font)
+    else:
+        plt.xlabel('True Value')
+        plt.ylabel('Predicted Value')
+        plt.title('Regression Scatter Plot by Gestational Age')
+        plt.legend()
     plt.tight_layout()
     scatter_path = os.path.join(result_dir, 'scatter_plot.png')
     plt.savefig(scatter_path, dpi=200)
-    print(f'散点图已保存为 {scatter_path}')
+    print(f'Scatter plot saved as {scatter_path}')
 
 def week_to_class(week):
     if 21 <= week <= 24:
@@ -190,12 +210,13 @@ def main():
     print(f"Test MAE: {mae(all_preds, all_targets):.3f}")
     print(f"Test RMSE: {rmse(all_preds, all_targets):.3f}")
 
-    class_labels = ['21-24周','25-28周','29-30周','31-32周','33-34周','35-36周','37-40周','其它']
+
+    class_labels = ['21-24w','25-28w','29-30w','31-32w','33-34w','35-36w','37-40w','Other']
     true_classes = [week_to_class(day_to_week(t)) for t in all_targets]
     pred_classes = [week_to_class(day_to_week(p)) for p in all_preds]
 
-    print_class_distribution(class_labels, true_classes, "真实类别分布")
-    print_class_distribution(class_labels, pred_classes, "预测类别分布")
+    print_class_distribution(class_labels, true_classes, "True Class Distribution")
+    print_class_distribution(class_labels, pred_classes, "Predicted Class Distribution")
     matrix = print_confusion_matrix(class_labels, true_classes, pred_classes)
     print_classification_metrics(class_labels, matrix)
     print_sample_results(all_names, all_targets, all_preds, week_to_class, week_and_day, pred_to_interval)
