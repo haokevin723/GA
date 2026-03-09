@@ -30,13 +30,13 @@ def week_and_day(day):
 
 def pred_to_interval(pred):
     intervals = [
-        ('21-24周', 147, 168),
-        ('25-28周', 175, 196),
-        ('29-30周', 203, 216),
-        ('31-32周', 217, 230),
-        ('33-34周', 231, 244),
-        ('35-36周', 245, 258),
-        ('37-40周', 259, 280)
+        ('21-24week', 147, 168),
+        ('25-28week', 175, 196),
+        ('29-30week', 203, 216),
+        ('31-32week', 217, 230),
+        ('33-34week', 231, 244),
+        ('35-36week', 245, 258),
+        ('37-40week', 259, 280)
     ]
     for i, (label, start, end) in enumerate(intervals):
         # 左闭右开，最后一个区间右闭
@@ -46,7 +46,7 @@ def pred_to_interval(pred):
         else:
             if start <= pred <= end:
                 return label, start, end
-    return '其它', None, None
+    return 'other', None, None
 
 def print_class_distribution(class_labels, classes, title):
     print(f"\n[{title}]")
@@ -95,14 +95,13 @@ def save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result
     matplotlib.rcParams['axes.unicode_minus'] = False
     plt.figure(figsize=(7,7))
     color_map = {
-        '21-24周': 'tab:blue',
-        '25-28周': 'tab:orange',
-        '29-30周': 'tab:green',
-        '31-32周': 'tab:red',
-        '33-34周': 'tab:purple',
-        '35-36周': 'tab:brown',
-        '37-40周': 'tab:pink',
-        '其它': 'gray'
+        '21-24week': 'tab:blue',
+        '25-28week': 'tab:orange',
+        '29-30week': 'tab:green',
+        '31-32week': 'tab:red',
+        '33-34week': 'tab:purple',
+        '35-36week': 'tab:brown',
+        '37-40week': 'tab:pink',
     }
     for label in class_labels[:-1]:
         idxs = [i for i, c in enumerate(true_classes) if c == label]
@@ -122,21 +121,21 @@ def save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result
 
 def week_to_class(week):
     if 21 <= week <= 24:
-        return '21-24周'
+        return '21-24week'
     elif 25 <= week <= 28:
-        return '25-28周'
+        return '25-28week'
     elif 29 <= week <= 30:
-        return '29-30周'
+        return '29-30week'
     elif 31 <= week <= 32:
-        return '31-32周'
+        return '31-32week'
     elif 33 <= week <= 34:
-        return '33-34周'
+        return '33-34week'
     elif 35 <= week <= 36:
-        return '35-36周'
+        return '35-36week'
     elif 37 <= week <= 40:
-        return '37-40周'
+        return '37-40week'
     else:
-        return '其它'
+        return 'other'
     
 def main():
         # 1. 评估和打印所有统计信息（保持原有流程）
