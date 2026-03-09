@@ -3,6 +3,8 @@ import yaml
 import torch
 import argparse
 import numpy as np
+import datetime
+import matplotlib.pyplot as plt
 from collections import Counter, defaultdict
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -10,6 +12,7 @@ from datasets.regression_dataset import RegressionDataset
 from models.model_factory import get_model
 from utils.metrics import mae, rmse
 from utils.misc import ensure_dir
+
 
 def load_config(path):
     with open(path, 'r', encoding='utf-8') as f:
@@ -37,6 +40,7 @@ def week_to_class(week):
         return '其它'
     
 def main():
+        # 1. 评估和打印所有统计信息（保持原有流程）
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', type=str, default=None, help='GPU id to use, e.g. 0 or 1')
     args = parser.parse_args()
@@ -167,6 +171,24 @@ def main():
             pred_week = int(pred // 7)
             pred_day = int(pred % 7)
         print(f"{name}\tTrue: {target:.1f} ({true_week}周{true_day}天, {week_to_class(true_week)})\tPred: {pred:.1f} ({pred_week}周{pred_day}天, {pred_class})")
+
+    # 2. 生成以年月日时分秒命名的结果文件夹，并保存散点图
+
+    result_dir = datetime.datetime.now().strftime('results/%Y%m%d_%H%M%S')
+    os.makedirs(result_dir, exist_ok=True)
+    plt.figure(figsize=(6,6))
+    plt.scatter(all_targets, all_preds, alpha=0.6, edgecolors='b')
+    min_val = min(all_targets.min(), all_preds.min())
+    max_val = max(all_targets.max(), all_preds.max())
+    plt.plot([min_val, max_val], [min_val, max_val], 'r--', label='y=x')
+    plt.xlabel('True Value')
+    plt.ylabel('Predicted Value')
+    plt.title('Regression Scatter Plot')
+    plt.legend()
+    plt.tight_layout()
+    scatter_path = os.path.join(result_dir, 'scatter_plot.png')
+    plt.savefig(scatter_path, dpi=200)
+    print(f'散点图已保存为 {scatter_path}')
 
 if __name__ == '__main__':
     main()
