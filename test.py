@@ -176,14 +176,30 @@ def main():
 
     result_dir = datetime.datetime.now().strftime('results/%Y%m%d_%H%M%S')
     os.makedirs(result_dir, exist_ok=True)
-    plt.figure(figsize=(6,6))
-    plt.scatter(all_targets, all_preds, alpha=0.6, edgecolors='b')
+    plt.figure(figsize=(7,7))
+        # 颜色映射
+    color_map = {
+            '21-24周': 'tab:blue',
+            '25-28周': 'tab:orange',
+            '29-30周': 'tab:green',
+            '31-32周': 'tab:red',
+            '33-34周': 'tab:purple',
+            '35-36周': 'tab:brown',
+            '37-40周': 'tab:pink',
+            '其它': 'gray'
+    }
+    # 按类别分组画点
+    for label in class_labels[:-1]:  # 只画7种孕周
+        idxs = [i for i, c in enumerate(true_classes) if c == label]
+        if idxs:
+            plt.scatter(all_targets[idxs], all_preds[idxs], alpha=0.7, label=label, color=color_map[label], edgecolors='none')
+    # 画对角线
     min_val = min(all_targets.min(), all_preds.min())
     max_val = max(all_targets.max(), all_preds.max())
-    plt.plot([min_val, max_val], [min_val, max_val], 'r--', label='y=x')
+    plt.plot([min_val, max_val], [min_val, max_val], 'k--', label='y=x')
     plt.xlabel('True Value')
     plt.ylabel('Predicted Value')
-    plt.title('Regression Scatter Plot')
+    plt.title('Regression Scatter Plot by Gestational Age')
     plt.legend()
     plt.tight_layout()
     scatter_path = os.path.join(result_dir, 'scatter_plot.png')
