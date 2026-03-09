@@ -141,19 +141,19 @@ def save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result
 
 def week_to_class(week):
     if 21 <= week <= 24:
-        return '21-24week'
+        return '21-24w'
     elif 25 <= week <= 28:
-        return '25-28week'
+        return '25-28w'
     elif 29 <= week <= 30:
-        return '29-30week'
+        return '29-30w'
     elif 31 <= week <= 32:
-        return '31-32week'
+        return '31-32w'
     elif 33 <= week <= 34:
-        return '33-34week'
+        return '33-34w'
     elif 35 <= week <= 36:
-        return '35-36week'
+        return '35-36w'
     elif 37 <= week <= 40:
-        return '37-40week'
+        return '37-40w'
     else:
         return 'other'
     
