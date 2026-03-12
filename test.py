@@ -139,6 +139,25 @@ def save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result
     plt.savefig(scatter_path, dpi=200)
     print(f'Scatter plot saved as {scatter_path}')
 
+def save_tracking_plot(all_targets, all_preds, result_dir):
+    #画图算法，画一种预测值和真实值的跟踪图，横坐标是样本索引（按照真实值排序），纵坐标是天数，两条曲线分别是预测值和真实值
+    idx_sorted = np.argsort(-all_targets)  # 从大到小排序
+    sorted_targets = all_targets[idx_sorted]
+    sorted_preds = all_preds[idx_sorted]
+    x = np.arange(len(sorted_targets))
+    plt.figure(figsize=(10,5))
+    plt.scatter(x, sorted_targets, color='blue', label='True', s=18, alpha=0.8)
+    plt.scatter(x, sorted_preds, color='orange', label='Pred', s=18, alpha=0.8)
+    plt.xlabel('Sample (sorted by true value)')
+    plt.ylabel('Days')
+    plt.title('Prediction Tracking Plot')
+    plt.legend()
+    plt.tight_layout()
+    save_path = os.path.join(result_dir, 'tracking_plot.png')
+    plt.savefig(save_path, dpi=200)
+    plt.close()
+    print(f'Tracking plot saved as {save_path}')
+
 def week_to_class(week):
     if 21 <= week <= 24:
         return '21-24w'
@@ -224,6 +243,7 @@ def main():
     result_dir = datetime.datetime.now().strftime('results/%Y%m%d_%H%M%S')
     os.makedirs(result_dir, exist_ok=True)
     save_scatter_plot(all_targets, all_preds, true_classes, class_labels, result_dir)
+    save_tracking_plot(all_targets, all_preds, result_dir)
 
 if __name__ == '__main__':
     main()
