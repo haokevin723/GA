@@ -6,6 +6,7 @@ import argparse
 import pandas as pd
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from losses.regression_loss import get_loss
 
 # 完美引用你刚加进去的两个类
 from datasets.regression_dataset import RegressionDataset, RefineDataset 
@@ -61,13 +62,15 @@ def main():
     if not os.path.exists(model_A_path):
         raise FileNotFoundError(f"找不到基座模型！请确保 {model_A_path} 存在。")
         
-    model.load_state_dict(torch.load(model_A_path))
+    #model.load_state_dict(torch.load(model_A_path))
+    # 明确告诉 PyTorch 把权重映射到 cpu 上，同时消除 weights_only 的警告
+    model.load_state_dict(torch.load(model_A_path, map_location=torch.device('cpu'), weights_only=True))
     print(f"[INFO] 成功继承全科医生 (Model A) 权重: {model_A_path}")
     model = model.to(device) 
 
     # 4. 使用平滑的 Huber Loss 和极小的学习率微调
     #criterion = nn.HuberLoss(delta=5.0)
-    criterion = nn.get_loss(cfg['loss'])
+    criterion = get_loss(cfg['loss'])
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg['lr'])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
 
