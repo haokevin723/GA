@@ -1,0 +1,16 @@
+# 默认配置
+seed: 42
+model: densenet
+backbone: densenet201
+pretrained: true
+loss: mse
+optimizer: adam
+lr: 0.00001
+batch_size: 16
+epochs: 200
+data_dir: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/data
+label_csv: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/label.csv
+train_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/train.txt
+val_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/val.txt
+test_split: /home/haokuankuan/data/Fetal_Lung/dataset_for_GA/test.txt
+num_workers: 4

@@ -22,3 +22,22 @@ class RegressionDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image, label
+
+# 这个 RefineDataset 是为了给 Model B 筛选出更困难的样本，专注于 31-36 周（217-258 天）的样本
+class RefineDataset(Dataset):
+    def __init__(self, original_dataset, min_days=217, max_days=258):
+        self.original_dataset = original_dataset
+        self.indices = []
+        print(f"[Model B] 正在筛选 {min_days}-{max_days} 天的困难样本...")
+        for idx in range(len(original_dataset)):
+            # 这里是获取真实天数的逻辑，可能需要根据你原来的 __getitem__ 怎么写的来调整
+            _, target = original_dataset[idx] 
+            if min_days <= target <= max_days:
+                self.indices.append(idx)
+        print(f"[Model B] 筛选完成！可用样本数: {len(self.indices)}")
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, idx):
+        return self.original_dataset[self.indices[idx]]
