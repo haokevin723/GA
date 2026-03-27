@@ -18,7 +18,7 @@ def load_config(path):
     with open(path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
-def main():
+def main():       
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', type=str, default=None, help='GPU id to use, e.g. 0 or 1')
     args = parser.parse_args()
@@ -39,14 +39,33 @@ def main():
     ensure_dir('logs')
 
     # 数据预处理
+    """
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
+    """
+    # 数据预处理重新处理
+    # 专科医生专属的“高倍镜与防作弊”预处理
+    # 1. 训练集专属（带高倍镜 + 破坏性增强）
+    train_transform = transforms.Compose([
+        transforms.Resize((400, 400)), 
+        transforms.RandomCrop(384),    # 产生最大 16 像素的微小位移，防死记硬背
+        transforms.RandomHorizontalFlip(p=0.5), 
+        transforms.ColorJitter(brightness=0.15, contrast=0.15),
+        transforms.ToTensor(),
+    ])
 
-    # 1. 加载基础数据集
-    base_train_dataset = RegressionDataset(cfg['data_dir'], cfg['label_csv'], cfg['train_split'], transform)
-    base_val_dataset = RegressionDataset(cfg['data_dir'], cfg['label_csv'], cfg['val_split'], transform)
+    # 2. 验证集/测试集专属（只做高倍镜放大，绝对公平对齐）
+    val_transform = transforms.Compose([
+        transforms.Resize((400, 400)),
+        transforms.CenterCrop(384),    # 严格取正中心，保证尺寸一致但不引入随机性
+        transforms.ToTensor(),
+    ])
+
+    # 加载基础数据集时，分别传入不同的 transform
+    base_train_dataset = RegressionDataset(cfg['data_dir'], cfg['label_csv'], cfg['train_split'], train_transform)
+    base_val_dataset = RegressionDataset(cfg['data_dir'], cfg['label_csv'], cfg['val_split'], val_transform)
 
     # 2. 套上过滤器，专供 Model B
     train_dataset_B = RefineDataset(base_train_dataset, min_days=217, max_days=258)
