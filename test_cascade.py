@@ -156,7 +156,8 @@ def main():
     cfg = load_config('configs/default.yaml')
 
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((400, 400)),
+        transforms.CenterCrop(384),    # 严格取正中心，保证尺寸一致但不引入随机性
         transforms.ToTensor(),
     ])
 
