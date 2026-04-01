@@ -94,12 +94,12 @@ def main():
         # input[0] 就是进入最后一层分类器之前的深层特征矩阵
         features_dict['features'] = input[0] 
 
-    # 2. 把窃听器挂在 DenseNet 的分类器层上
-    if hasattr(model, 'classifier'): 
-        model.classifier.register_forward_hook(get_features_hook)
-    elif hasattr(model, 'fc'): # 兼容其他网络
-        model.fc.register_forward_hook(get_features_hook)
+    # 1. 防御性脱壳 (防止你用了多卡 DataParallel)
+    actual_model = model.module if hasattr(model, 'module') else model
 
+    # 2. 直接将窃听器拍在你自定义的 reg_head 上！
+    actual_model.reg_head.register_forward_hook(get_features_hook)
+    print("🌟 [INFO] 窃听器已精准狙击并挂载到自建层: reg_head")
     # 3. 初始化两位监工：MSE 主导，Contrastive 辅助排雷
     criterion = get_loss(cfg['loss'])
     criterion_contra = RegressionContrastiveLoss(margin=5.0, pos_thresh=3, neg_thresh=10).to(device)
