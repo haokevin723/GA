@@ -15,6 +15,7 @@ from datasets.regression_dataset import RegressionDataset
 from models.model_factory import get_model
 from utils.metrics import mae, rmse
 from utils.misc import ensure_dir
+import torchvision.transforms.functional as TF
 
 # ==========================================
 # 保持你原有的所有 Helper 和画图函数完全不变
@@ -202,10 +203,24 @@ def main():
             # 步骤 3：圈定需要专科医生出马的样本 (预测值落在 217~258 天)
             mask_need_B = (preds_A >= 217) & (preds_A <= 258)
             
-            # 步骤 4：专科医生对这些疑难杂症进行精修
+            # 步骤 4：专科医生对这些疑难杂症进行精修，(引入 TTA 联合会诊机制)
             if mask_need_B.any():
-                images_for_B = images[mask_need_B]
-                preds_B = model_B(images_for_B).view(-1)
+                images_for_B = images[mask_need_B]               
+                # --- [新增 TTA 逻辑] ---
+                # 专家 1：看原图
+                pred_B_1 = model_B(images_for_B).view(-1)
+                
+                # 专家 2：看水平翻转后的图 (模拟医生换个角度看)
+                images_for_B_hf = TF.hflip(images_for_B)
+                pred_B_2 = model_B(images_for_B_hf).view(-1)
+                
+                # 专家 3：看稍微调亮一点的图 (模拟医生调节显示器对比度)
+                images_for_B_br = TF.adjust_brightness(images_for_B, brightness_factor=1.1)
+                pred_B_3 = model_B(images_for_B_br).view(-1)
+                
+                # 综合三位“虚拟专家”的意见求平均，极大地消除边缘抖动！
+                preds_B = (pred_B_1 + pred_B_2 + pred_B_3) / 3.0
+                # ----------------------
                 # 用 B 的精修结果覆盖 A 的结果
                 final_preds[mask_need_B] = preds_B
                 
