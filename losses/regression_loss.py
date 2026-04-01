@@ -49,3 +49,44 @@ class CustomWeightedMSE(nn.Module):
         weighted_mse = (mse * weights).mean()
         
         return weighted_mse
+
+class RegressionContrastiveLoss(torch.nn.Module):
+    def __init__(self, margin=5.0, pos_thresh=3, neg_thresh=10):
+        """
+        margin: 负样本对在特征空间中需要被推开的最小距离
+        pos_thresh: 天数差 <= 该值，视为极度相似的正样本 (拉近)
+        neg_thresh: 天数差 >= 该值，视为绝对不同的负样本 (推开)
+        """
+        super().__init__()
+        self.margin = margin
+        self.pos_thresh = pos_thresh
+        self.neg_thresh = neg_thresh
+
+    def forward(self, features, labels):
+        # features: [Batch, Feature_Dim], labels: [Batch]
+        B = features.size(0)
+        
+        # 1. 算出 Batch 内所有图片特征两两之间的距离矩阵
+        dist_matrix = torch.cdist(features, features, p=2)
+        
+        # 2. 算出 Batch 内所有真实天数两两之间的绝对差值
+        label_diff = torch.abs(labels.unsqueeze(0) - labels.unsqueeze(1))
+
+        # 3. 划定正负样本掩码 (剔除对角线自己跟自己的配对)
+        eye_mask = torch.eye(B, dtype=torch.bool, device=features.device)
+        pos_mask = (label_diff <= self.pos_thresh) & ~eye_mask
+        neg_mask = (label_diff >= self.neg_thresh)
+
+        # 4. 正样本 Loss：天数相近的，特征距离越小越好 (Pull)
+        if pos_mask.any():
+            pos_loss = dist_matrix[pos_mask].pow(2).mean()
+        else:
+            pos_loss = torch.tensor(0.0, device=features.device)
+
+        # 5. 负样本 Loss：天数差得远的，距离如果小于 margin，就狠狠惩罚 (Push)
+        if neg_mask.any():
+            neg_loss = F.relu(self.margin - dist_matrix[neg_mask]).pow(2).mean()
+        else:
+            neg_loss = torch.tensor(0.0, device=features.device)
+
+        return pos_loss + neg_loss
